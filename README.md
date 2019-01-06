@@ -45,4 +45,7 @@ To create your own tree you will need:
 |Star Apple (Chrysophyllum Cainito L.)| 8.8% |Hemisphere|
 |Bornean Rhu (Gymnostoma Nobile)| 17.8% |Cone|
 |Rain Tree (Samanea Saman)| 7.4% | Ellipsoid Oblate|
-|Red Frangipani Tree (Plumeria Rubra)| 16% | Ellipsoid Prolate / Oblate |          
+|Red Frangipani Tree (Plumeria Rubra)| 16% | Ellipsoid Prolate / Oblate |
+
+![Image](img/greenCS.png)     
+Image created in Rhino + Radiance using the tree crown models generated using the code. Above: Photographs of the scene. Below: Rendered images of the scene. 
