@@ -34,7 +34,7 @@ def area_cone(r, h):
     return r * math.pi * ((h**2 + r**2)**0.5)
 
 #Generate vertices using parametric equation for cone
-def generateConeVertices(vertices_count, height, radius):
+def generate_cone_vertices(vertices_count, height, radius):
     vertices = []
     while len(vertices) < vertices_count:
         #create z points with a lesser probability of occurence with increasing height.
@@ -48,7 +48,7 @@ def generateConeVertices(vertices_count, height, radius):
         vertices.append((x, y, z))
     return vertices
 
-def generateEllipsoidVertices(vertices_count, height, radius):
+def generate_ellipsoid_vertices(vertices_count, height, radius):
     vertices = []
     while len(vertices) < vertices_count:
         x1 = random.uniform(-1.0,1.0)
@@ -68,7 +68,7 @@ def generateEllipsoidVertices(vertices_count, height, radius):
                 vertices.append((radius*x, radius*y, height*z))
     return vertices
 
-def generateHemisphereVertices(vertices_count, width):
+def generate_hemisphere_vertices(vertices_count, width):
 	vertices = [] # list containing all vertices
 	scale_factor = width/2.0
 
@@ -91,10 +91,10 @@ def triangulate(vertices):
     v2d = [(v[0], v[1]) for v in vertices]
     return scipy.spatial.Delaunay(v2d)
 
-def triangulateConvexHull(vertices):
-    return scipy.spatial.ConvexHull(vertices, qhull_options="Qt")
+def triangulate_convex_hull(vertices):
+    return scipy.spatial.convex_hull(vertices, qhull_options="Qt")
 
-def writePointCloud(filename, vertices):
+def write_point_cloud(filename, vertices):
     if not os.path.exists("output"):
         os.makedirs("output")
     with open("output/" + filename + ".csv", 'w') as f:
@@ -102,7 +102,7 @@ def writePointCloud(filename, vertices):
         for point in vertices:
             f.write('%.8f,%.8f,%.8f\n' % point)
 
-def writeObjFile(filename, vertices, faces):
+def write_obj_file(filename, vertices, faces):
     if not os.path.exists("output"):
         os.makedirs("output")
     with open("output/" + filename + ".obj", 'w') as f:
@@ -116,7 +116,7 @@ def writeObjFile(filename, vertices, faces):
         for face in faces:
             f.write('f %i// %i// %i//\n' % (face[0]+1, face[1]+1, face[2]+1))
 #Write
-def writeRadFile(filename, vertices, faces):
+def write_rad_file(filename, vertices, faces):
     if not os.path.exists("output"):
         os.makedirs("output")
     with open("output/" + filename + ".rad", 'w') as f:
@@ -127,7 +127,7 @@ def writeRadFile(filename, vertices, faces):
                 f.write("\t\t%.8f \t\t%.8f \t\t%.8f\n" % vertices[vtx_index])
             f.write("\n")
 
-def plottingPointCloud(vertices):
+def plotting_point_cloud(vertices):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
@@ -142,8 +142,8 @@ def plottingPointCloud(vertices):
 
     plt.show()
 
-#getGoodTriangles removes the bottom and base tringles of the geometry
-def getGoodTriangles(vertices, faces, h, maxLength):
+#get_good_triangles removes the bottom and base tringles of the geometry
+def get_good_triangles(vertices, faces, h, max_length):
     triangle_faces = []
     for face in faces:
         good_triangle = True
@@ -158,7 +158,7 @@ def getGoodTriangles(vertices, faces, h, maxLength):
             for face_index in range(len(face)):
                 # Checking the distance between any one side of the triangular face.
                 # Change this max_length factor if you smaller or bigger triangles.
-                if dist_2d(vertices[face[face_index]],vertices[face[face_index-1]]) > maxLength:
+                if dist_2d(vertices[face[face_index]],vertices[face[face_index-1]]) > max_length:
                     good_triangle = False
                     break
 
@@ -166,21 +166,21 @@ def getGoodTriangles(vertices, faces, h, maxLength):
             triangle_faces.append(face.tolist())
     return triangle_faces
 
-def getTriangleAreas(vertices, faces):
+def get_triangle_areas(vertices, faces):
     return [area_triangle(vertices[face[0]], vertices[face[1]], vertices[face[2]]) for face in faces]
 
-def getTriangleCentroids(vertices, faces):
+def get_triangle_centroids(vertices, faces):
     return [centroid_triangle(vertices[face[0]], vertices[face[1]], vertices[face[2]]) for face in faces]
 
-def selectFaces(vertices, faces, area, gapPercentage, clusterDensity = 3.0):
+def select_faces(vertices, faces, area, gap_percentage, cluster_density = 3.0):
     cluster_distance_factor = (area / len(faces)) ** 0.5
     face_keep_indices = [] # indices of faces to keep
-    triangle_centroids = getTriangleCentroids(vertices, faces)
-    triangle_areas = getTriangleAreas(vertices, faces)
+    triangle_centroids = get_triangle_centroids(vertices, faces)
+    triangle_areas = get_triangle_areas(vertices, faces)
 
     kd_tree = scipy.spatial.KDTree(triangle_centroids) # compute KDTree of point distances
 
-    goal_to_keep = (1-(gapPercentage ** 0.5)) * area # area of tree to be kept
+    goal_to_keep = (1-(gap_percentage ** 0.5)) * area # area of tree to be kept
     total_kept = 0.0 # tracks kept area
 
     print "goal_to_keep", goal_to_keep
@@ -200,7 +200,7 @@ def selectFaces(vertices, faces, area, gapPercentage, clusterDensity = 3.0):
                 face_keep_indices.append(face_index)
                 total_kept += triangle_areas[face_index]
         elif choice == 1: # cluster of leaves
-            distance = random.random() * clusterDensity * cluster_distance_factor # cluster distance
+            distance = random.random() * cluster_density * cluster_distance_factor # cluster distance
             # increasing this factor from 5.0 to 10.0 makes the loosely filled cluster -- that is trees that are not dense
             # descreasing the number to 2.0 gives an almost uniformly distributed look without much clusters
             close_faces = kd_tree.query_ball_point(triangle_centroids[face_index], distance) # close faces with centroids within cluster distance
@@ -213,14 +213,14 @@ def selectFaces(vertices, faces, area, gapPercentage, clusterDensity = 3.0):
     print "Time elapsed"
     return face_keep_indices
 
-def mainRun(vertices, gapPercentage, maxLength, shapeName, height, ideal_area, clusterDensity=3.0, convexHull=False):
+def main_run(vertices, gap_percentage, max_length, shape_name, height, ideal_area, cluster_density=3.0, convex_hull=False):
     #Write the point cloud generated into a csv file.
-    writePointCloud(shapeName + "PointCloud", vertices)
+    write_point_cloud(shape_name + "PointCloud", vertices)
 
     #Create triangulated mesh using Delaunay
     tmp_triangles = []
-    if convexHull:
-        tmp_triangles = triangulateConvexHull(vertices)
+    if convex_hull:
+        tmp_triangles = triangulate_convex_hull(vertices)
     else:
         tmp_triangles = triangulate(vertices)
 
@@ -229,72 +229,72 @@ def mainRun(vertices, gapPercentage, maxLength, shapeName, height, ideal_area, c
     tmp_triangle_vertices = tmp_triangles.vertices
 
     #Keeping the good triangles from the mesh.
-    triangle_faces = getGoodTriangles(vertices, tmp_triangle_faces, height, maxLength)
+    triangle_faces = get_good_triangles(vertices, tmp_triangle_faces, height, max_length)
     print "after removing count = %d" % len(triangle_faces)
 
     #Getting the final triangulated geometry in accordance with gap percentage.
-    #Increase clusterDensity for denser cluster. Decrease clusterDensity for even looking crown.
-    face_keep_indices = selectFaces(vertices, triangle_faces, ideal_area, gapPercentage, clusterDensity=clusterDensity)
+    #Increase cluster_density for denser cluster. Decrease cluster_density for even looking crown.
+    face_keep_indices = select_faces(vertices, triangle_faces, ideal_area, gap_percentage, cluster_density=cluster_density)
 
     # =========================================
     # output final mesh as .obj and .rad files
     # =========================================
     kept_faces = [triangle_faces[i] for i in face_keep_indices]
-    writeObjFile(shapeName, vertices, kept_faces)
-    writeRadFile(shapeName, vertices, kept_faces)
+    write_obj_file(shape_name, vertices, kept_faces)
+    write_rad_file(shape_name, vertices, kept_faces)
 
-def genHemisphere(vertices_count=20000, gapPercentage=0.136, width=5.0):
+def gen_hemisphere(vertices_count=20000, gap_percentage=0.136, width=5.0):
     width = float(width)
-    vertices = generateHemisphereVertices(vertices_count, width)
+    vertices = generate_hemisphere_vertices(vertices_count, width)
 
     # max_length is based on the 1/2 circumferance length divided by the sqrt of the vertex count
-    maxLength = 4.0 * math.pi * (width/2.0) / (vertices_count**0.5)
+    max_length = 4.0 * math.pi * (width/2.0) / (vertices_count**0.5)
 
     ideal_area_hemisphere = area_hemisphere(width)
     print "area", ideal_area_hemisphere
 
-    mainRun(vertices, gapPercentage, maxLength, "Hemisphere", width, ideal_area_hemisphere, clusterDensity=2.0, convexHull=True)
+    main_run(vertices, gap_percentage, max_length, "Hemisphere", width, ideal_area_hemisphere, cluster_density=2.0, convex_hull=True)
 
-def genEllipsoidProlate(vertices_count=20000, gapPercentage = 0.059, height=7.8, radius=5.35):
+def gen_ellipsoid_prolate(vertices_count=20000, gap_percentage = 0.059, height=7.8, radius=5.35):
     height = float(height)
     radius = float(radius)
-    vertices = generateEllipsoidVertices(vertices_count, height, radius)
+    vertices = generate_ellipsoid_vertices(vertices_count, height, radius)
 
     #Area of half an prolate ellipsoid.
     ideal_area_ellipsoid = area_prolate_ellipsoid(height, radius) / 2
 
     # now remove the bottom triangles of the triangulated hemisphere
-    maxLength = 4 * math.pi * radius / (vertices_count**0.5)
+    max_length = 4 * math.pi * radius / (vertices_count**0.5)
     # max_length is based on the 1/2 circumferance length divided by the sqrt of the vertex count
 
-    mainRun(vertices, gapPercentage, maxLength, "EllProlate", height, ideal_area_ellipsoid, clusterDensity=7.0, convexHull=True)
+    main_run(vertices, gap_percentage, max_length, "EllProlate", height, ideal_area_ellipsoid, cluster_density=7.0, convex_hull=True)
 
-def genEllipsoidOblate(vertices_count=20000, gapPercentage=0.03, height=5.2, radius=5.7):
+def gen_ellipsoid_oblate(vertices_count=20000, gap_percentage=0.03, height=5.2, radius=5.7):
     height = float(height)
     radius = float(radius)
-    vertices = generateEllipsoidVertices(vertices_count, height, radius)
+    vertices = generate_ellipsoid_vertices(vertices_count, height, radius)
 
     #Area of half an oblate ellipsoid.
     ideal_area_ellipsoid = area_ellipsoid(height, radius) / 2
 
     #Remove the bottom triangles of the triangulated hemisphere
-    maxLength = 4.0 * ((math.pi * radius) / (vertices_count**0.5))
+    max_length = 4.0 * ((math.pi * radius) / (vertices_count**0.5))
     #Notes:
     #max_length is based on the 1/2 circumferance length divided by the sqrt of the vertex count
     #the smaller this factor the even looking triangles make the mesh
     #the smaller this number the difficult it is to be a good triangle.
 
-    mainRun(vertices, gapPercentage, maxLength, "EllOblate", height, ideal_area_ellipsoid, clusterDensity=7.0, convexHull=False)
+    main_run(vertices, gap_percentage, max_length, "EllOblate", height, ideal_area_ellipsoid, cluster_density=7.0, convex_hull=False)
 
-def genCone(vertices_count=10000, gapPercentage=0.18, height=8.5, radius=2.5):
+def get_cone(vertices_count=10000, gap_percentage=0.18, height=8.5, radius=2.5):
     height = float(height)
     radius = float(radius)
-    vertices = generateConeVertices(vertices_count, height, radius)
+    vertices = generate_cone_vertices(vertices_count, height, radius)
 
     #Remove the bottom triangles of the triangulated hemisphere
-    maxLength = 6.0 * math.pi * radius / (vertices_count**0.5)
+    max_length = 6.0 * math.pi * radius / (vertices_count**0.5)
 
     ideal_area_cone = area_cone(radius, height)
     print "area", ideal_area_cone
 
-    mainRun(vertices, gapPercentage, maxLength, "Cone", height, ideal_area_cone, clusterDensity=3.0)
+    main_run(vertices, gap_percentage, max_length, "Cone", height, ideal_area_cone, cluster_density=3.0)
