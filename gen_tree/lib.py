@@ -109,7 +109,7 @@ def triangulate(vertices):
 
 
 def triangulate_convex_hull(vertices):
-    return scipy.spatial.convex_hull(vertices, qhull_options="Qt")
+    return scipy.spatial.ConvexHull(vertices, qhull_options="Qt")
 
 
 def write_point_cloud(filename, vertices):
