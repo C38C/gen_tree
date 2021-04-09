@@ -281,7 +281,7 @@ def main_run(vertices, gap_percentage, max_length, shape_name, height, ideal_are
     write_rad_file(shape_name, vertices, kept_faces)
 
 
-def gen_hemisphere(vertices_count=20000, gap_percentage=0.136, width=5.0):
+def gen_hemisphere(file_name="Hemisphere", vertices_count=20000, gap_percentage=0.136, width=5.0):
     width = float(width)
     vertices = generate_hemisphere_vertices(vertices_count, width)
 
@@ -291,11 +291,11 @@ def gen_hemisphere(vertices_count=20000, gap_percentage=0.136, width=5.0):
     ideal_area_hemisphere = area_hemisphere(width)
     print ("area %f" % ideal_area_hemisphere)
 
-    main_run(vertices, gap_percentage, max_length, "Hemisphere", width,
+    main_run(vertices, gap_percentage, max_length, file_name, width,
              ideal_area_hemisphere, cluster_density=2.0, convex_hull=True)
 
 
-def gen_ellipsoid_prolate(vertices_count=20000, gap_percentage=0.059, height=7.8,
+def gen_ellipsoid_prolate(file_name="EllProlate", vertices_count=20000, gap_percentage=0.059, height=7.8,
                           radius=5.35):
     height = float(height)
     radius = float(radius)
@@ -308,11 +308,11 @@ def gen_ellipsoid_prolate(vertices_count=20000, gap_percentage=0.059, height=7.8
     max_length = 4 * math.pi * radius / (vertices_count**0.5)
     # max_length is based on the 1/2 circumferance length divided by the sqrt of the vertex count
 
-    main_run(vertices, gap_percentage, max_length, "EllProlate", height,
+    main_run(vertices, gap_percentage, max_length, file_name, height,
              ideal_area_ellipsoid, cluster_density=7.0, convex_hull=True)
 
 
-def gen_ellipsoid_oblate(vertices_count=20000, gap_percentage=0.03, height=5.2,
+def gen_ellipsoid_oblate(file_name="EllOblate", vertices_count=20000, gap_percentage=0.03, height=5.2,
                          radius=5.7):
     height = float(height)
     radius = float(radius)
@@ -328,11 +328,11 @@ def gen_ellipsoid_oblate(vertices_count=20000, gap_percentage=0.03, height=5.2,
     # the smaller this factor the even looking triangles make the mesh
     # the smaller this number the difficult it is to be a good triangle.
 
-    main_run(vertices, gap_percentage, max_length, "EllOblate", height,
+    main_run(vertices, gap_percentage, max_length, file_name, height,
              ideal_area_ellipsoid, cluster_density=7.0, convex_hull=False)
 
 
-def get_cone(vertices_count=10000, gap_percentage=0.18, height=8.5, radius=2.5):
+def get_cone(file_name="Cone", vertices_count=10000, gap_percentage=0.18, height=8.5, radius=2.5):
     height = float(height)
     radius = float(radius)
     vertices = generate_cone_vertices(vertices_count, height, radius)
@@ -343,5 +343,5 @@ def get_cone(vertices_count=10000, gap_percentage=0.18, height=8.5, radius=2.5):
     ideal_area_cone = area_cone(radius, height)
     print("area: %f" %ideal_area_cone)
 
-    main_run(vertices, gap_percentage, max_length, "Cone",
+    main_run(vertices, gap_percentage, max_length, file_name,
              height, ideal_area_cone, cluster_density=3.0)
